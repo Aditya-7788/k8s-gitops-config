@@ -1,0 +1,35 @@
+replicaCount: 2
+image:
+  repository: api
+  tag: v1.0.0
+  pullPolicy: IfNotPresent
+service:
+  port: 8000
+env:
+  APP_ENV: staging
+  LOG_LEVEL: info
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 192Mi
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+ingress:
+  enabled: false
+  className: nginx
+  host: api.tasks.local
+  path: /
+secret:
+  create: false
+  data: {}
+serviceMonitor:
+  enabled: true
+  release: kube-prometheus-stack
+  interval: 30s

@@ -1,0 +1,102 @@
+defaultRules:
+  create: true
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 1
+    secrets:
+      - alertmanager-slack
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 150m
+        memory: 128Mi
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: slack
+      group_by:
+        - alertname
+        - namespace
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+    receivers:
+      - name: slack
+        slack_configs:
+          - api_url_file: /etc/alertmanager/secrets/alertmanager-slack/slack_webhook_url
+            channel: "#alerts"
+            send_resolved: true
+            title: '{{ "{{" }} .CommonLabels.alertname {{ "}}" }}'
+            text: '{{ "{{" }} .CommonAnnotations.summary {{ "}}" }}'
+grafana:
+  enabled: true
+  admin:
+    existingSecret: ""
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 25m
+      memory: 96Mi
+    limits:
+      cpu: 200m
+      memory: 192Mi
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+prometheus:
+  enabled: true
+  prometheusSpec:
+    replicas: 1
+    retention: 3d
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    serviceMonitorSelectorNilUsesHelmValues: true
+    podMonitorSelectorNilUsesHelmValues: true
+    storageSpec: {}
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 150m
+      memory: 128Mi
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+nodeExporter:
+  enabled: true
+  resources:
+    requests:
+      cpu: 10m
+      memory: 24Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+kubeStateMetrics:
+  enabled: true
+  resources:
+    requests:
+      cpu: 15m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 96Mi

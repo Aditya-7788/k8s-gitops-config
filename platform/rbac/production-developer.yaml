@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gitops-developer
+  namespace: production
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gitops-developer-readonly
+  namespace: production
+rules:
+  - apiGroups: ["", "apps", "autoscaling", "batch", "networking.k8s.io"]
+    resources:
+      - configmaps
+      - deployments
+      - jobs
+      - pods
+      - pods/log
+      - replicasets
+      - services
+      - serviceaccounts
+      - ingresses
+      - horizontalpodautoscalers
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitops-developer-readonly
+  namespace: production
+subjects:
+  - kind: ServiceAccount
+    name: gitops-developer
+    namespace: production
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gitops-developer-readonly

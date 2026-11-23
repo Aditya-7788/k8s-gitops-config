@@ -1,0 +1,14 @@
+replicaCount: 2
+image:
+  repository: api
+  tag: v1.0.0
+  pullPolicy: IfNotPresent
+env:
+  APP_ENV: staging
+  LOG_LEVEL: info
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 8
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80

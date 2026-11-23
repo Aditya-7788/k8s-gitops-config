@@ -1,0 +1,10 @@
+replicaCount: 1
+image:
+  repository: frontend
+  tag: v1.0.0
+  pullPolicy: IfNotPresent
+ingress:
+  enabled: true
+  className: nginx
+  host: tasks.local
+  path: /

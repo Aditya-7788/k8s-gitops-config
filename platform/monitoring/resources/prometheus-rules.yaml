@@ -1,0 +1,44 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: task-manager-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+    app.kubernetes.io/part-of: task-manager
+spec:
+  groups:
+    - name: task-manager.pods
+      rules:
+        - alert: PodRestartBurst
+          expr: sum by (namespace, pod) (increase(kube_pod_container_status_restarts_total[5m])) > 3
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: Pod {{ "{{" }} $labels.pod {{ "}}" }} restarted more than three times in five minutes
+            description: Inspect events and the previous container log in {{ "{{" }} $labels.namespace {{ "}}" }}.
+        - alert: HighContainerCpu
+          expr: sum by (namespace, pod) (rate(container_cpu_usage_seconds_total{container!="",pod!=""}[5m])) / sum by (namespace, pod) (kube_pod_container_resource_requests{resource="cpu"}) > 0.85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Pod {{ "{{" }} $labels.pod {{ "}}" }} CPU is above 85% of requested CPU
+            description: Check HPA activity, limits, and load in {{ "{{" }} $labels.namespace {{ "}}" }}.
+        - alert: HighApiErrorRate
+          expr: sum by (namespace) (rate(http_requests_total{status=~"5.."}[5m])) / sum by (namespace) (rate(http_requests_total[5m])) > 0.05
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: API 5xx rate is above 5%
+            description: Inspect API logs and request error counters in {{ "{{" }} $labels.namespace {{ "}}" }}.
+        - alert: PodNotReady
+          expr: kube_pod_status_ready{condition="true",namespace=~"staging|production"} == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Pod {{ "{{" }} $labels.pod {{ "}}" }} has not been ready for five minutes
+            description: Inspect readiness probes and events in {{ "{{" }} $labels.namespace {{ "}}" }}.

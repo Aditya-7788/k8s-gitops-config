@@ -1,0 +1,9 @@
+replicaCount: 1
+image:
+  repository: worker
+  tag: v1.0.0
+  pullPolicy: IfNotPresent
+env:
+  API_URL: http://api:8000
+  WORKER_INTERVAL_SECONDS: "10"
+  LOG_LEVEL: info
